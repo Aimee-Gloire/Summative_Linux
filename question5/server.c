@@ -9,48 +9,33 @@
 #define MAX_CLIENTS 4
 #define BUF_SIZE 256
 
-// ================================================================
-// Hard-coded valid usernames
-// ================================================================
-char* valid_users[] = {
-    "s001", "s002", "s003", "s004",
-    NULL
-};
-
-// Track authenticated students
+char *valid_users[] = {"s001", "s002", "s003", "s004", NULL};
 char active_users[MAX_CLIENTS][50];
 int active_count = 0;
 
 pthread_mutex_t lock;
 
-// ================================================================
-// Check if a username is valid
-// ================================================================
-int authenticate(char* username) {
+// ---------------- AUTH ---------------------
+int authenticate(char *u) {
     for (int i = 0; valid_users[i] != NULL; i++) {
-        if (strcmp(username, valid_users[i]) == 0)
+        if (strcmp(valid_users[i], u) == 0)
             return 1;
     }
     return 0;
 }
 
-// ================================================================
-// Add a student to the active users list
-// ================================================================
-void add_user(char* username) {
+// -------- ADD USER (thread-safe) ----------
+void add_user(char *u) {
     pthread_mutex_lock(&lock);
-    strncpy(active_users[active_count], username, 49);
+    strncpy(active_users[active_count], u, 49);
     active_users[active_count][49] = '\0';
     active_count++;
     pthread_mutex_unlock(&lock);
 }
 
-// ================================================================
-// Build a string containing active students
-// ================================================================
-void get_active_users(char* out) {
+// ------- BUILD ACTIVE STUDENT LIST --------
+void build_active(char *out) {
     strcpy(out, "Active students: ");
-
     pthread_mutex_lock(&lock);
     for (int i = 0; i < active_count; i++) {
         strcat(out, active_users[i]);
@@ -60,117 +45,99 @@ void get_active_users(char* out) {
     pthread_mutex_unlock(&lock);
 }
 
-// ================================================================
-// Thread function that handles a single client
-// ================================================================
-void* handle_client(void* arg) {
-    int client_sock = *(int*)arg;
+// ========== HANDLE ONE CLIENT THREAD ==========
+void *handle_client(void *arg) {
+
+    int client = *((int *)arg);   // correct unique socket
     char buffer[BUF_SIZE];
-    char login_msg[256];
-    char end_msg[256];
-    char active_msg[256];
+    char active_list[256];
+    char username_copy[50];
 
-    // ------------------------------------------------------------
-    // Step 1: Receive username
-    // ------------------------------------------------------------
+    // ---- Step 1: Receive username ----
     bzero(buffer, BUF_SIZE);
-    read(client_sock, buffer, BUF_SIZE);
-
-    // Limit username to 49 chars (prevents warnings & overflow)
+    read(client, buffer, BUF_SIZE);
     buffer[49] = '\0';
+
+    strncpy(username_copy, buffer, 49);
+    username_copy[49] = '\0';
 
     printf("Client attempting login with username: %s\n", buffer);
 
-    // ------------------------------------------------------------
-    // Step 2: Authenticate student
-    // ------------------------------------------------------------
+    // ---- Step 2: Authenticate ----
     if (!authenticate(buffer)) {
-        char* msg = "ERROR: Authentication failed.\n";
-        write(client_sock, msg, strlen(msg));
-        close(client_sock);
+        write(client, "ERROR: Authentication failed.\n",
+              strlen("ERROR: Authentication failed.\n"));
+        close(client);
         pthread_exit(NULL);
     }
 
-    // Add to active user list
     add_user(buffer);
 
-    // ------------------------------------------------------------
-    // Step 3: Send welcome message (safe printing)
-    // ------------------------------------------------------------
-    snprintf(login_msg, sizeof(login_msg),
-             "Welcome %.49s! Authentication successful.\n", buffer);
-    write(client_sock, login_msg, strlen(login_msg));
+    // ---- Step 3: Welcome ----
+    write(client, "Welcome ", strlen("Welcome "));
+    write(client, username_copy, strlen(username_copy));
+    write(client, "! Authentication successful.\n",
+          strlen("! Authentication successful.\n"));
 
-    // ------------------------------------------------------------
-    // Step 4: Send exam question
-    // ------------------------------------------------------------
-    char* question = "Q: What is 2 + 2? ";
-    write(client_sock, question, strlen(question));
+    // ---- Step 4: Send question ----
+    const char question[] = "Q: What is 2 + 2?\nYour answer: ";
+    write(client, question, strlen(question));
 
-    // ------------------------------------------------------------
-    // Step 5: Read answer from student
-    // ------------------------------------------------------------
+    // ---- Step 5: Receive answer ----
     bzero(buffer, BUF_SIZE);
-    read(client_sock, buffer, BUF_SIZE);
+    read(client, buffer, BUF_SIZE);
 
-    // ------------------------------------------------------------
-    // Step 6: Check answer accuracy
-    // ------------------------------------------------------------
-    if (strcmp(buffer, "4") == 0 || strcmp(buffer, "4\n") == 0) {
-        write(client_sock, "Server: Correct!\n", 18);
-    } else {
-        write(client_sock, "Server: Incorrect.\n", 20);
-    }
+    // ---- Step 6: Feedback ----
+    if (buffer[0] == '4')
+        write(client, "Server: Correct!\n", strlen("Server: Correct!\n"));
+    else
+        write(client, "Server: Incorrect!\n", strlen("Server: Incorrect!\n"));
 
-    // ------------------------------------------------------------
-    // Step 7: Send active user list
-    // ------------------------------------------------------------
-    get_active_users(active_msg);
-    write(client_sock, active_msg, strlen(active_msg));
+    // ---- Step 7: Active users ----
+    build_active(active_list);
+    write(client, active_list, strlen(active_list));
+    write(client, "\n", 1);
 
-    // ------------------------------------------------------------
-    // Step 8: End exam session
-    // ------------------------------------------------------------
-    snprintf(end_msg, sizeof(end_msg),
-             "Exam session ended. Thank you, %.49s\n", buffer);
-    write(client_sock, end_msg, strlen(end_msg));
+    // ---- Step 8: End message ----
+    write(client, "Exam session ended. Thank you, ",
+          strlen("Exam session ended. Thank you, "));
+    write(client, username_copy, strlen(username_copy));
+    write(client, "\n", 1);
 
-    close(client_sock);
+    close(client);
     pthread_exit(NULL);
 }
 
-// ================================================================
-// Main server function
-// ================================================================
+// =============== MAIN SERVER ====================
 int main() {
     int server_fd, client_sock;
-    struct sockaddr_in address;
-    int addrlen = sizeof(address);
+    struct sockaddr_in addr;
+    int addrlen = sizeof(addr);
 
     pthread_mutex_init(&lock, NULL);
 
-    // Create TCP socket
     server_fd = socket(AF_INET, SOCK_STREAM, 0);
 
-    // Server address settings
-    address.sin_family = AF_INET;
-    address.sin_addr.s_addr = INADDR_ANY;
-    address.sin_port = htons(PORT);
+    addr.sin_family = AF_INET;
+    addr.sin_addr.s_addr = INADDR_ANY;
+    addr.sin_port = htons(PORT);
 
-    // Bind & listen
-    bind(server_fd, (struct sockaddr*)&address, sizeof(address));
+    bind(server_fd, (struct sockaddr *)&addr, sizeof(addr));
     listen(server_fd, MAX_CLIENTS);
 
     printf("Server running on port %d. Waiting for students...\n", PORT);
 
-    // Accept up to MAX_CLIENTS concurrently
     while (1) {
-        client_sock = accept(server_fd, (struct sockaddr*)&address, (socklen_t*)&addrlen);
+        client_sock = accept(server_fd, (struct sockaddr *)&addr,
+                             (socklen_t *)&addrlen);
         printf("New student connected.\n");
 
-        pthread_t thread;
-        pthread_create(&thread, NULL, handle_client, &client_sock);
-        pthread_detach(thread);
+        int *client_copy = malloc(sizeof(int));
+        *client_copy = client_sock;
+
+        pthread_t t;
+        pthread_create(&t, NULL, handle_client, client_copy);
+        pthread_detach(t);
     }
 
     close(server_fd);

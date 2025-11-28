@@ -10,9 +10,10 @@ gcc barista_waiter.c -o barista_waiter -lpthread
 Run:
 ./barista_waiter
 
-Behavior:
+Synchronization Used:
 
-- Barista (producer) prepares a drink every 4s; waiter (consumer) serves every 3s.
-- Shared queue capacity: 8.
-- Proper synchronization: mutex + condvars (`queue_not_full`, `queue_not_empty`).
-- Console output shows queue size, waits on full/empty conditions.
+pthread_mutex_t
+pthread_cond_t
+Barista waits when queue full
+Waiter waits when queue empty
+No race conditions (mutex protects queue_count)

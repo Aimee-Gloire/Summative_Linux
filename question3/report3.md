@@ -6,13 +6,6 @@ Files:
 - setup.py
 - test.py
 
-Build & Install (local user):
-python3 setup.py build
-python3 setup.py install --user
-
-Run test:
-python3 test.py
-
 Functions:
 
 - min_temp(list_of_floats)
@@ -21,6 +14,17 @@ Functions:
 - variance_temp(list_of_floats)  (sample variance)
 - count_readings(list_of_floats)
 
-Complexity:
+Build & Install (local user):
 
-- Each function is O(n) time and uses O(n) memory to copy Python list into a C array.
+- python3 setup.py build
+- python3 setup.py install --user
+
+Run:
+python3 test.py
+
+Performance Notes
+
+Linear time: O(n)
+Memory: copies Python floats into C array once (efficient)
+Handles invalid inputs gracefully
+Much faster than pure Python implementation
