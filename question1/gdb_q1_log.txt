@@ -1,0 +1,68 @@
+Breakpoint 1 at 0x12b1
+Starting program: /mnt/c/Users/HP/Documents/Linux/Summative_Linux/question1/question1 
+[Thread debugging using libthread_db enabled]
+Using host libthread_db library "/lib/x86_64-linux-gnu/libthread_db.so.1".
+
+Breakpoint 1, 0x00005555555552b1 in main ()
+Breakpoint 2 at 0x55555555549d
+Continuing.
+
+Breakpoint 2, 0x000055555555549d in writeToFile ()
+Breakpoint 3 at 0x555555555556
+Continuing.
+
+Breakpoint 3, 0x0000555555555556 in readFromFile ()
+Breakpoint 4 at 0x555555555683
+Continuing.
+
+Breakpoint 4, 0x0000555555555683 in sortNames ()
+Stack level 0, frame at 0x7fffffffd840:
+ rip = 0x555555555683 in sortNames; saved rip = 0x555555555344
+ called by frame at 0x7fffffffdc40
+ Arglist at 0x7fffffffd830, args: 
+ Locals at 0x7fffffffd830, Previous frame's sp is 0x7fffffffd840
+ Saved registers:
+  rbp at 0x7fffffffd830, rip at 0x7fffffffd838
+rax            0x7fffffffd840      140737488345152
+rbx            0x0                 0
+rcx            0x1c                28
+rdx            0x555555559         22906492249
+rsi            0xa                 10
+rdi            0x7fffffffd840      140737488345152
+rbp            0x7fffffffd830      0x7fffffffd830
+rsp            0x7fffffffd830      0x7fffffffd830
+r8             0x555555559ac0      93824992254656
+r9             0x0                 0
+r10            0x77                119
+r11            0xe41877f0badec713  -2010725357809907949
+r12            0x7fffffffdd48      140737488346440
+r13            0x5555555552a9      93824992236201
+r14            0x555555557d68      93824992247144
+r15            0x7ffff7ffd040      140737354125376
+rip            0x555555555683      0x555555555683 <sortNames+8>
+eflags         0x206               [ PF IF ]
+cs             0x33                51
+ss             0x2b                43
+ds             0x0                 0
+es             0x0                 0
+fs             0x0                 0
+gs             0x0                 0
+0x7fffffffd830:	0x00007fffffffdc30	0x0000555555555344
+0x7fffffffd840:	0x6c472065656d6941	0x000000006572696f
+0x7fffffffd850:	0x00007fff00000000	0x00007fff00000000
+0x7fffffffd860:	0x00000000ffffffff	0x0000000000000000
+0x7fffffffd870:	0x00007ffff7fc3908	0x00007ffff7ffdaf0
+0x7fffffffd880:	0x00007ffff7fc38d8	0x00007ffff7fd01d4
+0x7fffffffd890:	0x0000000000000218	0x00007ffff7d8eb8c
+0x7fffffffd8a0:	0x6e6e615900001140	0x0000797a6e654b20
+0x7fffffffd8b0:	0x000000000000000a	0x000000000000000d
+0x7fffffffd8c0:	0x00007ffff7fbb160	0x00007ffff7fa71b8
+0x7fffffffd8d0:	0x00005555555552a9	0x0000555555557d68
+0x7fffffffd8e0:	0x00007ffff7ffd040	0x00007ffff7fd5f71
+0x7fffffffd8f0:	0x0000000000000001	0x0000000000000000
+0x7fffffffd900:	0x00007ffff7fc3908	0x73654b206564614a
+0x7fffffffd910:	0x000000000065696c	0x00007fffffffdcc0
+0x7fffffffd920:	0x0000000000000001	0x00007fffffffdd48
+Warning: 'set logging off', an alias for the command 'set logging enabled', is deprecated.
+Use 'set logging enabled off'.
+
