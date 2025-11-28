@@ -11,12 +11,11 @@ Folders:
 - question5/ TCP client-server exam system
 
 Each question has its own README with instructions on:  
-✔ How to compile  
-✔ How to run  
-✔ What files are included  
-✔ What the program does  
 
-A short written project report accompanies this repository, and a video demonstration was recorded separately.
+- How to compile  
+- How to run  
+- What files are included  
+- What the program does  
 
 ---
 

@@ -1,30 +1,62 @@
 # Question 3 — C Extension (temp_ext)
 
-Files:
+## 1. Overview
 
-- temp_ext.c
-- setup.py
-- test.py
+This task required creating a performance-optimized C extension for Python.  
+The extension processes a list of floating-point temperature readings and exposes:
 
-Functions:
+- min_temp()
+- max_temp()
+- avg_temp()
+- variance_temp()
+- count_readings()
 
-- min_temp(list_of_floats)
-- max_temp(list_of_floats)
-- avg_temp(list_of_floats)
-- variance_temp(list_of_floats)  (sample variance)
-- count_readings(list_of_floats)
+The module is named `temp_ext` and integrates cleanly with Python via setuptools.
 
-Build & Install (local user):
+---
 
-- python3 setup.py build
-- python3 setup.py install --user
+## 2. Files Included
 
-Run:
+- `temp_ext.c` — C source
+- `setup.py` — build script
+- `test.py` — sample usage script
+
+---
+
+## 3. Implementation Summary
+
+### Functionality
+
+Each function:
+
+- Accepts a Python list of floats
+- Converts it into a C `double` array
+- Performs O(n) computation
+- Returns results back to Python
+
+### Memory
+
+- Uses stack arrays for iteration
+- No malloc needed
+- Python reference counts respected
+
+### Performance
+
+- O(n) for min, max, sum, variance
+- Faster than Python loops due to compiled C operations
+
+### Error Handling
+
+- Checks for empty lists
+- Ensures elements are numeric
+- Returns Python exceptions on invalid input
+
+---
+
+## 4. How to Build and Run
+
+```bash
+python3 setup.py build
+python3 setup.py install --user
 python3 test.py
-
-Performance Notes
-
-Linear time: O(n)
-Memory: copies Python floats into C array once (efficient)
-Handles invalid inputs gracefully
-Much faster than pure Python implementation
+```
